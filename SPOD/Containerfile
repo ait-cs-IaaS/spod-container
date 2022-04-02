@@ -1,0 +1,19 @@
+FROM php:5-apache
+
+ENV DEBIAN_FRONTEND="noninteractive" TZ="Etc/UTC"
+RUN apt-get update && apt-get upgrade -y && apt-get -y install bsdtar zlib1g-dev libpng-dev libfreetype6-dev
+
+RUN curl https://developers.oxwall.com/dl/oxwall-1.8.4.1.zip -sL | bsdtar xvf - -C /var/www/html
+RUN mkdir /var/www/html/DEP && for plugin in deep deep-client deep-components; do\
+  mkdir /var/www/html/DEP/${plugin} && curl https://github.com/routetopa/${plugin}/archive/refs/heads/master.zip -sL |\
+  bsdtar xvf - --strip-components=1 -C /var/www/html/DEP/${plugin}; done
+
+RUN for plugin in ode myspace openid agora openwall tchat widgets api cocreation notification-system agora-exporter; do\
+  mkdir /var/www/html/ow_plugins/${plugin} && curl https://github.com/routetopa/spod-plugin-${plugin}/archive/refs/heads/master.zip -sL |\
+  bsdtar xvf - --strip-components=1 -C /var/www/html/ow_plugins/${plugin}; done
+
+RUN mkdir /var/www/html/ow_themes/spod_theme_matter && \curl https://github.com/routetopa/spod-theme-matter/archive/refs/heads/master.zip -sL |\
+ bsdtar xvf - --strip-components=1 -C /var/www/html/ow_themes/spod_theme_matter
+
+RUN chown -R www-data:www-data /var/www/html && a2enmod rewrite && docker-php-ext-configure gd --with-freetype-dir --enable-gd-native-ttf &&\
+  docker-php-ext-install gd mysql zip pdo pdo_mysql

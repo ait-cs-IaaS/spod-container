@@ -1,0 +1,34 @@
+version: '3'
+
+volumes:
+  mysql:
+
+networks:
+  spod:
+
+services:
+  oxwall:
+    image: localhost/spod:latest
+    build: ./SPOD
+    container_name: spod
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:8080:80
+    depends_on:
+      - db
+    networks:
+      - spod
+
+  db:
+    image: mariadb
+    container_name: database
+    restart: unless-stopped
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+      MARIADB_DATABASE: spod
+      MARIADB_USER: spod
+      MARIADB_PASSWORD: spod
+    networks:
+      - spod
